@@ -30,8 +30,8 @@ func EncryptAES(key, plaintext []byte) ([]byte, error) {
         return nil, err
     }
     ciphertext := make([]byte, aes.BlockSize+len(plaintext))
-    iv := ciphertext[:aes.BlockSize] // iv= initialization vector, used to provide initial state . this line extracts 1st 16 bytes from ciphertext
-    if _, err := io.ReadFull(rand.Reader, iv); err != nil { // fils iv with 16 random bytes (printable, non printable chars from 0-255)
+    iv := ciphertext[:aes.BlockSize] // iv= initialization vector, this line extracts 1st 16 bytes from ciphertext
+    if _, err := io.ReadFull(rand.Reader, iv); err != nil { // fils iv with 16 random bytes (printable, non printable characters from 0-255)
         return nil, err
     }
     stream := cipher.NewCFBEncrypter(block, iv) // CFB= cipher feedback
@@ -56,11 +56,11 @@ func EncryptAESKeyWithRSA(publicKey *rsa.PublicKey, aesKey []byte) ([]byte, erro
 
 func main() {
     // Load RSA public key
-    pubKeyFile, err := os.Open("public.pem") //public.pem has rsa public key. which we use to encrypt the aes key
+    pubKeyFile, err := os.Open("public.pem") //public.pem has the RSA public key,used to encrypt the AES key
     if err != nil {
         panic(err)
     }
-    defer pubKeyFile.Close() // ensures that this function (close file) gets excecuted in the end, even if some error occurs in opening the file. prevents resource leak incase the file wasnt able to close
+    defer pubKeyFile.Close()
     pubKeyBytes, _ := ioutil.ReadAll(pubKeyFile)
     block, _ := pem.Decode(pubKeyBytes)
     pubKey, err := x509.ParsePKIXPublicKey(block.Bytes) //pkix is a standard format for public keys 
@@ -92,6 +92,6 @@ func main() {
     }
 
     // Save encrypted data and AES key to file
-    ioutil.WriteFile("encrypted_data.bin", encryptedData, 0644)// 0644 specifies permissions. (0 for ?) 6 so that owner can r/w , 4 and 4 means groups and everyone else can only read it 
+    ioutil.WriteFile("encrypted_data.bin", encryptedData, 0644)// Specifying permissions
     ioutil.WriteFile("encrypted_aes_key.bin", encryptedAESKey, 0644)
 }
