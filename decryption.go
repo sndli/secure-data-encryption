@@ -1,7 +1,7 @@
 package main
 
 import (
-	"crypto"
+    "crypto"
     "crypto/aes"
     "crypto/cipher"
     "crypto/rand"
@@ -47,11 +47,20 @@ func main() {
         panic(err)
     }
     defer privKeyFile.Close()
+
     privKeyBytes, _ := ioutil.ReadAll(privKeyFile)
     block, _ := pem.Decode(privKeyBytes)
+
+    // Use PKCS#8 format
     privKey, err := x509.ParsePKCS8PrivateKey(block.Bytes)
     if err != nil {
         panic(err)
+    }
+
+    // Type assert to *rsa.PrivateKey
+    rsaPrivKey, ok := privKey.(*rsa.PrivateKey) // Adding type assertion here
+    if !ok {
+        panic("not an RSA private key")
     }
 
     // Load and decrypt AES key
@@ -59,7 +68,7 @@ func main() {
     if err != nil {
         panic(err)
     }
-    aesKey, err := DecryptAESKeyWithRSA(privKey, encryptedAESKey)
+    aesKey, err := DecryptAESKeyWithRSA(rsaPrivKey, encryptedAESKey) // Use the asserted type here
     if err != nil {
         panic(err)
     }
